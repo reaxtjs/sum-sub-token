@@ -3,6 +3,7 @@ const express = require("express");
 const axios = require("axios");
 const crypto = require("crypto");
 const FormData = require("form-data");
+const cors = require("cors");
 
 const app = express();
 const PORT = 4000;
