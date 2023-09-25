@@ -43,7 +43,7 @@ app.get("/about", (req, res) => {
   res.send("This is my about route..... ");
 });
 
-app.get("/create/:id", (req, res) => {
+app.get("/create/:id", cors(), (req, res) => {
   const SUMSUB_APP_TOKEN =
     "prd:Pn7tJ8ctgeUHvgQDfZJSkeH7.NwT3NARGu31LMG8wcRUGhhtEGKwX9ESq";
   const SUMSUB_SECRET_KEY = "EtCuQTXlL3IboXvdzljm0LsQWS3c9d8K";
