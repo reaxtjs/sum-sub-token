@@ -7,6 +7,11 @@ const FormData = require("form-data");
 const app = express();
 const PORT = 4000;
 
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 app.listen(PORT, () => {
   console.log(`API listening on PORT ${PORT} `);
 });
