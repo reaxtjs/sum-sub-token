@@ -1,27 +1,31 @@
-const axios = require('axios');
-const crypto = require('crypto');
-const fs = require('fs');
-const FormData = require('form-data');
+var express = require("express");
+const axios = require("axios");
+const crypto = require("crypto");
+const fs = require("fs");
+const FormData = require("form-data");
+var app = express();
+app.use(express.json());
 
 // These parameters should be used for all requests
-const SUMSUB_APP_TOKEN = 'prd:Pn7tJ8ctgeUHvgQDfZJSkeH7.NwT3NARGu31LMG8wcRUGhhtEGKwX9ESq'; // Example: sbx:uY0CgwELmgUAEyl4hNWxLngb.0WSeQeiYny4WEqmAALEAiK2qTC96fBad - Please don't forget to change when switching to production
-const SUMSUB_SECRET_KEY = 'EtCuQTXlL3IboXvdzljm0LsQWS3c9d8K'; // Example: Hej2ch71kG2kTd1iIUDZFNsO5C1lh5Gq - Please don't forget to change when switching to production
-const SUMSUB_BASE_URL = 'https://api.sumsub.com'; 
+const SUMSUB_APP_TOKEN =
+  "prd:Pn7tJ8ctgeUHvgQDfZJSkeH7.NwT3NARGu31LMG8wcRUGhhtEGKwX9ESq"; // Example: sbx:uY0CgwELmgUAEyl4hNWxLngb.0WSeQeiYny4WEqmAALEAiK2qTC96fBad - Please don't forget to change when switching to production
+const SUMSUB_SECRET_KEY = "EtCuQTXlL3IboXvdzljm0LsQWS3c9d8K"; // Example: Hej2ch71kG2kTd1iIUDZFNsO5C1lh5Gq - Please don't forget to change when switching to production
+const SUMSUB_BASE_URL = "https://api.sumsub.com";
 
 var config = {};
-config.baseURL= SUMSUB_BASE_URL;
+config.baseURL = SUMSUB_BASE_URL;
 
 axios.interceptors.request.use(createSignature, function (error) {
   return Promise.reject(error);
-})
+});
 
 // This function creates signature for the request as described here: https://developers.sumsub.com/api-reference/#app-tokens
 
 function createSignature(config) {
-  console.log('Creating a signature for the request...');
+  console.log("Creating a signature for the request...");
 
   var ts = Math.floor(Date.now() / 1000);
-  const signature = crypto.createHmac('sha256',  SUMSUB_SECRET_KEY);
+  const signature = crypto.createHmac("sha256", SUMSUB_SECRET_KEY);
   signature.update(ts + config.method.toUpperCase() + config.url);
 
   if (config.data instanceof FormData) {
@@ -30,8 +34,8 @@ function createSignature(config) {
     signature.update(config.data);
   }
 
-  config.headers['X-App-Access-Ts'] = ts;
-  config.headers['X-App-Access-Sig'] = signature.digest('hex');
+  config.headers["X-App-Access-Ts"] = ts;
+  config.headers["X-App-Access-Sig"] = signature.digest("hex");
 
   return config;
 }
@@ -42,18 +46,18 @@ function createSignature(config) {
 function createApplicant(externalUserId, levelName) {
   console.log("Creating an applicant...");
 
-  var method = 'post';
-  var url = '/resources/applicants?levelName=' + encodeURIComponent(levelName);
+  var method = "post";
+  var url = "/resources/applicants?levelName=" + encodeURIComponent(levelName);
   var ts = Math.floor(Date.now() / 1000);
-  
+
   var body = {
-      externalUserId: externalUserId
+    externalUserId: externalUserId,
   };
 
   var headers = {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'X-App-Token': SUMSUB_APP_TOKEN
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    "X-App-Token": SUMSUB_APP_TOKEN,
   };
 
   config.method = method;
@@ -68,21 +72,21 @@ function createApplicant(externalUserId, levelName) {
 function addDocument(applicantId) {
   console.log("Adding document to the applicant...");
 
-  var method = 'post';
+  var method = "post";
   var url = `/resources/applicants/${applicantId}/info/idDoc`;
-  var filePath = 'resources/sumsub-logo.png';
+  var filePath = "resources/sumsub-logo.png";
 
   var metadata = {
-      idDocType: 'PASSPORT',
-      country: 'GBR'
+    idDocType: "PASSPORT",
+    country: "GBR",
   };
 
   var form = new FormData();
-  form.append('metadata', JSON.stringify(metadata));
-  
-  var content = fs.readFileSync(filePath); 
-  form.append('content', content, filePath);
-  
+  form.append("metadata", JSON.stringify(metadata));
+
+  var content = fs.readFileSync(filePath);
+  form.append("content", content, filePath);
+
   /*
   In case you'd like to upload images in base64 encoded string format:
   
@@ -94,8 +98,8 @@ function addDocument(applicantId) {
   */
 
   var headers = {
-    'Accept': 'application/json',
-    'X-App-Token': SUMSUB_APP_TOKEN
+    Accept: "application/json",
+    "X-App-Token": SUMSUB_APP_TOKEN,
   };
 
   config.method = method;
@@ -110,12 +114,12 @@ function addDocument(applicantId) {
 function getApplicantStatus(applicantId) {
   console.log("Getting the applicant status...");
 
-  var method = 'get';
+  var method = "get";
   var url = `/resources/applicants/${applicantId}/status`;
 
   var headers = {
-    'Accept': 'application/json',
-    'X-App-Token': SUMSUB_APP_TOKEN
+    Accept: "application/json",
+    "X-App-Token": SUMSUB_APP_TOKEN,
   };
 
   config.method = method;
@@ -127,15 +131,25 @@ function getApplicantStatus(applicantId) {
 }
 
 // https://developers.sumsub.com/api-reference/#access-tokens-for-sdks
-function createAccessToken (externalUserId, levelName = 'basic-kyc-level', ttlInSecs = 600) {
+function createAccessToken(
+  externalUserId,
+  levelName = "basic-kyc-level",
+  ttlInSecs = 600
+) {
   console.log("Creating an access token for initializng SDK...");
 
-  var method = 'post';
-  var url = '/resources/accessTokens?userId=' + encodeURIComponent(externalUserId) + '&ttlInSecs=' + ttlInSecs + '&levelName=' + encodeURIComponent(levelName);
+  var method = "post";
+  var url =
+    "/resources/accessTokens?userId=" +
+    encodeURIComponent(externalUserId) +
+    "&ttlInSecs=" +
+    ttlInSecs +
+    "&levelName=" +
+    encodeURIComponent(levelName);
 
   var headers = {
-      'Accept': 'application/json',
-      'X-App-Token': SUMSUB_APP_TOKEN
+    Accept: "application/json",
+    "X-App-Token": SUMSUB_APP_TOKEN,
   };
 
   config.method = method;
@@ -149,16 +163,16 @@ function createAccessToken (externalUserId, levelName = 'basic-kyc-level', ttlIn
 // This section contains requests to server using configuration functions
 // The description of the flow can be found here: https://developers.sumsub.com/api-flow/#api-integration-phases
 
-        // Such actions are presented below:
-        // 1) Creating an applicant
-        // 2) Adding a document to the applicant
-        // 3) Getting applicant status
-        // 4) Getting access tokens for SDKs
+// Such actions are presented below:
+// 1) Creating an applicant
+// 2) Adding a document to the applicant
+// 3) Getting applicant status
+// 4) Getting access tokens for SDKs
 
 async function main() {
   externalUserId = "random-JSToken-" + Math.random().toString(36).substr(2, 9);
-  levelName = 'level1';
-  console.log("External UserID: ", externalUserId); 
+  levelName = "level1";
+  console.log("External UserID: ", externalUserId);
 
   response = await axios(createApplicant(externalUserId, levelName))
     .then(function (response) {
@@ -168,37 +182,55 @@ async function main() {
     .catch(function (error) {
       console.log("Error:\n", error.response.data);
     });
-  
+
   const applicantId = response.data.id;
   console.log("ApplicantID: ", applicantId);
 
   response = await axios(addDocument(applicantId))
-  .then(function (response) {
-    console.log("Response:\n", response.data);
-    return response;
-  })
-  .catch(function (error) {
-    console.log("Error:\n", error.response.data);
-  });
+    .then(function (response) {
+      console.log("Response:\n", response.data);
+      return response;
+    })
+    .catch(function (error) {
+      console.log("Error:\n", error.response.data);
+    });
 
   response = await axios(getApplicantStatus(applicantId))
-  .then(function (response) {
-    console.log("Response:\n", response.data);
-    return response;
-  })
-  .catch(function (error) {
-    console.log("Error:\n", error.response.data);
-  });
+    .then(function (response) {
+      console.log("Response:\n", response.data);
+      return response;
+    })
+    .catch(function (error) {
+      console.log("Error:\n", error.response.data);
+    });
 
   response = await axios(createAccessToken(externalUserId, levelName, 1200))
-  .then(function (response) {
-    console.log("Response:\n", response.data);
-    return response;
-  })
-  .catch(function (error) {
-    console.log("Error:\n", error.response.data);
-  });
-
+    .then(function (response) {
+      console.log("Response:\n", response.data);
+      return response;
+    })
+    .catch(function (error) {
+      console.log("Error:\n", error.response.data);
+    });
 }
 
-main();
+// main();
+app.post("/create/:userId", function (req, res) {
+  const { userId } = req.params;
+  console.log("is", userId);
+  res.status(200).send(userId);
+});
+
+//CREATE Request Handler
+app.post("/api/books", (req, res) => {
+  // console.log(req);
+  // return req.body;
+  const { hello } = req.body;
+  console.log(req.params);
+  res.status(200).send(hello);
+});
+var server = app.listen(8081, function () {
+  var host = server.address().address;
+  var port = server.address().port;
+  console.log("Example app listening at http://%s:%s", host, port);
+});
