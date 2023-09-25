@@ -80,6 +80,7 @@ app.get("/create/:id", (req, res) => {
   }
 
   async function main() {
+    console.log("hello main");
     externalUserId = req.params.id;
     levelName = "level1";
     response = await axios(createAccessToken(externalUserId, levelName, 1200))
@@ -87,6 +88,7 @@ app.get("/create/:id", (req, res) => {
         return res.json(response.data);
       })
       .catch(function (error) {
+        console.log("errir", error);
         console.log("Error:\n", error.response.data);
       });
   }
