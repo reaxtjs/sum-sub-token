@@ -13,6 +13,7 @@ var allowedOrigins = [
   "http://localhost:5173",
   "https://client.opofinance.com",
   "https://opo-client-area-my.vercel.app",
+  "https://account.opofinance.com",
 ];
 app.use(
   cors({
